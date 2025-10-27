@@ -1,0 +1,6 @@
+Nome: David
+Cognome: Nuccioni
+Numero Matricola: 387197
+email: david.nuccioni@studenti.unipg.it
+Python 3.12.3
+
