@@ -26,6 +26,6 @@ Secondi = 'Secondi'
 fine = 'Hai trascorso:\n{:<10s}{:02d}\n{:<10s}{:02d}\n{:<10s}{:02d}\n{:<10s}{:02d}\n{:<10s}{:02d}\n{:<10s}{:02d}'.format(Anni, anni, Mesi, mesi,Giorni, giorni_restanti, Ore, ore, Minuti, minuti, Secondi, secondi)
 print(fine)
 
-tots = differenza.total_seconds()
+tots = timediff.total_seconds()
 tts = int(tots)
 print('Sei sopravvisuto per un totale di: ', tts, 'secondi, complimenti!')
