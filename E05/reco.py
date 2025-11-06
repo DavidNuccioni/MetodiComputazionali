@@ -69,7 +69,7 @@ class Event:
 		self.t_1 = ar_hit[-1].time
 		self.dt = self.t_1 - self.t_0
 	
-	def summary(self):
+	def stampa(self):
 	
 		print(f"Evento con {self.n_hit} hit, durata {self.dt:.2f} ns")
 		

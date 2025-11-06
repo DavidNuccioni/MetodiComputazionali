@@ -83,7 +83,7 @@ def melt():
 	
 def ar_hits(df):
 	"""
-	Funzione che i dati in un array di reco.Hits
+	Funzione che immette dati in un array di reco.Hits ordinati temporalmente
 
     	Parameters
     	------------
@@ -95,10 +95,11 @@ def ar_hits(df):
 	"""
 	
 	hits = np.array([reco.Hit( r['mod_id'], r['det_id'], r['hit_time'] ) for i, r in df.iterrows()])
+	hits.sort(kind='mergesort') 
 	return hits
 	
 	
-def ar_events(hits):
+def ar_events(hits, dt):
 	"""
 	Funzione che raggruppa i dati Hit in un array reco.Event ovvero descrive un evento
 
@@ -112,17 +113,15 @@ def ar_events(hits):
     	events : array di oggetti di tipo Event
 	"""
 	
-
 	threshold = 200
 	df = melt()
 	hits = ar_hits(df)
-	hits.sort(kind='mergesort') 
-
-	dt = np.diff(hits).astype(float)
-	dt_mask = dt > 0
 	
-	# Mi sono fatto aiutare
-	boundaries = np.where(dt > threshold)[0] + 1
+	# Per risolvere il problema si usa [0]
+	# Si prende la prima tupla dell'array  (che è l'indice che cerco da passare a .split)
+	boundaries = np.nonzero(dt > threshold)[0]
+	print(boundaries.shape)
+	print(boundaries.dtype)
 	groups = np.split(hits, boundaries)
 	
 	events = np.array([reco.Event(i) for i in groups if len(i) > 0])
@@ -141,34 +140,35 @@ def reconstruct():
 	------------
 	"""
 	df = melt()
-
 	hits = ar_hits(df)
-	hits.sort(kind='mergesort') 
 	print('Numero totale di Hit:', hits.size)
 
 	dt = np.diff(hits).astype(float)
-	dt_mask = dt > 0
+	events = ar_events(hits, dt)
 	
+	# Plot delle differenze temporali di ogni Hit
 	logbins = np.logspace(0, 6, 100)
-	plt.hist(dt[dt_mask], bins=logbins)
+	plt.hist(dt, bins=logbins)
 	plt.xlabel(r'$\Delta t$ [ns]')
 	plt.title('Differenze temporali degli Hit')
 	plt.xscale('log')
 	plt.yscale('log')
 	plt.show()
-	
-	events = ar_events(hits)
+
 	for ev in events[:10]:
-		ev.summary()
+		ev.stampa()
 		print()
 	print('numero totale di Eventi: ', events.size)
 	
-	# Elementi definiti per creare i plot	
+	
+	# Elementi definiti per creare i plot
+	#Questa parte è da rivedere	
 	n_hits = np.array([e.n_hit for e in events])
 	durate = np.array([e.dt for e in events])
 	events_sorted = sorted(events, key=lambda e: e.t_0)
 	diff_times = np.diff([e.t_0 for e in events_sorted])
 	
+	# Plot del numero di Hit ad ogni evento Event
 	plt.hist(n_hits, bins=20, color='skyblue', edgecolor='black')
 	plt.xlabel("Numero di Hit per Evento")
 	plt.ylabel("Conteggio")
@@ -176,6 +176,7 @@ def reconstruct():
 	plt.grid(True, linestyle="--", alpha=0.6)
 	plt.show()
 	
+	# Plot della durata di ogni evento
 	plt.hist(durate, bins=20, color='lightgreen', edgecolor='black')
 	plt.xlabel("Durata evento [ns]")
 	plt.ylabel("Conteggio")
@@ -183,6 +184,7 @@ def reconstruct():
 	plt.grid(True, linestyle="--", alpha=0.6)
 	plt.show()
 	
+	# Plot delle differenze di tempo tra eventi consecutivi
 	plt.hist(diff_times, bins=20, color='salmon', edgecolor='black')
 	plt.xlabel("Differenza di tempo tra eventi consecutivi [ns]")
 	plt.ylabel("Conteggio")
@@ -191,7 +193,6 @@ def reconstruct():
 	plt.show()
 	
 	# Plot 2D
-	
 	xmod = [-5,  5, -5,  5]
 	ymod = [ 5,  5, -5, -5]
 
@@ -236,11 +237,11 @@ def reconstruct():
 
 	plt.show()
 
-
 	"""
-	for i, ev in enumerate(events[:5]):  # primi 5 eventi
+	for i, ev in enumerate(events[:10]):  # primi 10 eventi
 		plot_event(ev)
 	"""
+	
 if __name__ == "__main__":
 
     reconstruct()	
