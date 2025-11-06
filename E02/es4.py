@@ -1,4 +1,4 @@
-# reare un programma che calcoli l'età in base a una data immessa dall'utente
+# Creare un programma che calcoli l'età in base a una data immessa dall'utente
 
 from datetime import datetime, timedelta
 datenow = datetime.now()
