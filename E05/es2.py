@@ -119,11 +119,10 @@ def ar_events(hits, dt):
 	
 	# Per risolvere il problema si usa [0]
 	# Si prende la prima tupla dell'array  (che è l'indice che cerco da passare a .split)
-	boundaries = np.nonzero(dt > threshold)[0]
-	print(boundaries.shape)
-	print(boundaries.dtype)
+	# Si fa un salto di uno per separare correttamente gli array
+	boundaries = np.nonzero(dt > threshold)[0] +1
 	groups = np.split(hits, boundaries)
-	
+							 
 	events = np.array([reco.Event(i) for i in groups if len(i) > 0])
 
 	return events
@@ -141,32 +140,25 @@ def reconstruct():
 	"""
 	df = melt()
 	hits = ar_hits(df)
-	print('Numero totale di Hit:', hits.size)
 
 	dt = np.diff(hits).astype(float)
 	events = ar_events(hits, dt)
 	
+	# Elementi definiti per creare i plot	
+	n_hits = np.array([i.n_hit for i in events])
+	durate = np.array([i.dt for i in events])
+	dt_cons = np.diff([i.t_0 for i in events])
+	
 	# Plot delle differenze temporali di ogni Hit
 	logbins = np.logspace(0, 6, 100)
-	plt.hist(dt, bins=logbins)
+	plt.hist(dt, bins=logbins, color='dodgerblue', edgecolor='black')
 	plt.xlabel(r'$\Delta t$ [ns]')
+	plt.ylabel("Conteggio")
 	plt.title('Differenze temporali degli Hit')
 	plt.xscale('log')
 	plt.yscale('log')
-	plt.show()
-
-	for ev in events[:10]:
-		ev.stampa()
-		print()
-	print('numero totale di Eventi: ', events.size)
-	
-	
-	# Elementi definiti per creare i plot
-	#Questa parte è da rivedere	
-	n_hits = np.array([e.n_hit for e in events])
-	durate = np.array([e.dt for e in events])
-	events_sorted = sorted(events, key=lambda e: e.t_0)
-	diff_times = np.diff([e.t_0 for e in events_sorted])
+	plt.grid(True, linestyle="--", alpha=0.6)
+	plt.show()	
 	
 	# Plot del numero di Hit ad ogni evento Event
 	plt.hist(n_hits, bins=20, color='skyblue', edgecolor='black')
@@ -175,6 +167,7 @@ def reconstruct():
 	plt.title("Distribuzione del numero di Hit per Evento")
 	plt.grid(True, linestyle="--", alpha=0.6)
 	plt.show()
+	n_20hits = [e for e in events if e.n_hit == 20]
 	
 	# Plot della durata di ogni evento
 	plt.hist(durate, bins=20, color='lightgreen', edgecolor='black')
@@ -185,14 +178,14 @@ def reconstruct():
 	plt.show()
 	
 	# Plot delle differenze di tempo tra eventi consecutivi
-	plt.hist(diff_times, bins=20, color='salmon', edgecolor='black')
+	plt.hist(dt_cons, bins=20, color='salmon', edgecolor='black')
 	plt.xlabel("Differenza di tempo tra eventi consecutivi [ns]")
 	plt.ylabel("Conteggio")
 	plt.title("Distribuzione delle differenze temporali tra eventi")
 	plt.grid(True, linestyle="--", alpha=0.6)
 	plt.show()
 	
-	# Plot 2D
+	# Plot 2D: aiuto dell'IA
 	xmod = [-5,  5, -5,  5]
 	ymod = [ 5,  5, -5, -5]
 
@@ -224,7 +217,7 @@ def reconstruct():
 	for xm, ym in zip(xmod, ymod):
 		ax.add_patch(plt.Rectangle((xm - 5, ym - 5), 10, 10, fill=False, color='gray', lw=1))
 	
-	# Layout e annotazioni
+	# Layout
 	ax.set_xlabel('X [m]')
 	ax.set_ylabel('Y [m]')
 	ax.set_xlim(-10, 10)
@@ -232,10 +225,18 @@ def reconstruct():
 	ax.set_aspect('equal', adjustable='box')
 	ax.grid(False)
 
-	# Titolo esempio
+	# Titolo
 	ax.set_title("Event: 5 - Hits: 6")
 
 	plt.show()
+	
+	# Informazioni stampate sullo schermo
+	print('Numero totale di Hit:', hits.size)
+	for ev in events[:10]:
+		ev.stampa()
+		print()
+	print('Numero totale di Eventi: ', events.size)
+	print(f"Ci sono stati {len(n_20hits)} eventi che hanno acceso tutti i sensori")
 
 	"""
 	for i, ev in enumerate(events[:10]):  # primi 10 eventi
