@@ -140,6 +140,9 @@ def reconstruct():
 	"""
 	df = melt()
 	hits = ar_hits(df)
+	
+	# Valore che viene poi stampato alla fine
+	hits_stamp = hits.size
 
 	dt = np.diff(hits).astype(float)
 	events = ar_events(hits, dt)
@@ -231,7 +234,7 @@ def reconstruct():
 	plt.show()
 	
 	# Informazioni stampate sullo schermo
-	print('Numero totale di Hit:', hits.size)
+	print(f"Numero totale di Hit: {hits_stamp }")
 	for ev in events[:10]:
 		ev.stampa()
 		print()
